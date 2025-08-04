@@ -15,7 +15,7 @@ class RingBuffer {
 
         bool isEmpty() const;
         bool isFull() const;
-        size_t size() const;
+        int size() const;
 
     private:
         int* buffer;                // pointer to my buffer

@@ -4,7 +4,12 @@
 // Constructor for my RingBuffer 
 // returns nothing, don't need to say void
 RingBuffer::RingBuffer(size_t cap): capacity(cap), read_head(0), write_head(0), count(0) {
-    buffer = new int[capacity]; // create an array of ints of length capacity
+    buffer = new int[capacity];                             // create an array of ints of length capacity, to serve as buffer. allocates memory on the heap.
+}
+
+// Deconstructor for my RingBuffer
+RingBuffer::~RingBuffer() {
+    delete[] buffer;                                        // delete memory off the heap for clean up
 }
 
 
@@ -12,9 +17,47 @@ RingBuffer::RingBuffer(size_t cap): capacity(cap), read_head(0), write_head(0), 
 void RingBuffer::write(int item) {
     if (isFull()) {
         throw std::runtime_error("RingBuffer is full. Please read before writing again.");
+    }
 
     buffer[write_head] = item;
     write_head = (write_head + 1) % capacity;               // increment the write head (pointing at next available place to write)
     count++;                                                // increment number of items in buffer, don't need to use modulo because we just add to count and then subtract from count when reading
+}
+
+
+// Read function 
+int RingBuffer::read() {
+    if (isEmpty()) {
+        throw std::runtime_error("RingBuffer is empty. Please write before reading again.");
     }
+
+    int read_item;
+    read_item = buffer[read_head];
+    read_head = (read_head + 1) % capacity;
+    count--;
+    return read_item;
+}
+
+// Peek function
+int RingBuffer::peek() const {
+    if (isEmpty()) {
+        throw std::runtime_error("RingBuffer is empty. Please write before reading again.");
+    }
+
+    return buffer[read_head];
+}    
+
+// Function to check if the buffer is full (need to read before being able to write again)
+bool RingBuffer::isFull() const {
+    return count == capacity;
+}
+
+
+// Function to check if the buffer is empty (need to write before reading again)
+bool RingBuffer::isEmpty() const {
+    return count == 0;
+}
+
+int RingBuffer::size() const {
+    return count;
 }

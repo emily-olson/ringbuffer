@@ -3,12 +3,15 @@ CXX = g++
 RB_SOURCES = ringbuffer.cpp main.cpp
 RB_HEADERS = ringbuffer.hpp
 
-.PHONY: clean all
+.PHONY: all
 
 all: ringbuffer	
 
 ringbuffer: 
 	$(CXX) $(CXXFLAGS) $(RB_SOURCES) -o $@
+
+run: ringbuffer
+	./ringbuffer
 
 clean:
 	rm -f ringbuffer
