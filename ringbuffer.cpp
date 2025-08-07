@@ -1,10 +1,17 @@
 #include "ringbuffer.hpp"
 #include <stdexcept>
+#include <std::mutex>
+#include <std::unique_lock>
+#include <condition_variable>
 
 // Constructor for my RingBuffer 
 // returns nothing, don't need to say void
 RingBuffer::RingBuffer(size_t cap): capacity(cap), read_head(0), write_head(0), count(0) {
     buffer = new int[capacity];                             // create an array of ints of length capacity, to serve as buffer. allocates memory on the heap.
+    std::mutex mutex;
+    std::condition_variable nonfull;
+    std::condition_variable nonempty;
+
 }
 
 // Deconstructor for my RingBuffer
@@ -15,18 +22,29 @@ RingBuffer::~RingBuffer() {
 
 // Write function
 void RingBuffer::write(int item) {
+    std::unique_lock guard(mutex);
+    while (isFull()) {
+        nonfull.wait(guard);
+    }
     if (isFull()) {
         throw std::runtime_error("RingBuffer is full. Please read before writing again.");
     }
 
     buffer[write_head] = item;
     write_head = (write_head + 1) % capacity;               // increment the write head (pointing at next available place to write)
+    if not (isEmpty()) {
+        nonempty.notify_all();
+    }
     count++;                                                // increment number of items in buffer, don't need to use modulo because we just add to count and then subtract from count when reading
 }
 
 
 // Read function 
 int RingBuffer::read() {
+    std::unique_lock guard(mutex);
+    while (isEmpty()) {
+        nonempty.wait(guard);
+    }
     if (isEmpty()) {
         throw std::runtime_error("RingBuffer is empty. Please write before reading again.");
     }
@@ -34,6 +52,8 @@ int RingBuffer::read() {
     int read_item;
     read_item = buffer[read_head];
     read_head = (read_head + 1) % capacity;
+    if not (isFull()) {
+        nonfull.notify_all();
     count--;
     return read_item;
 }
