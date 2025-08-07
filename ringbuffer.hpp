@@ -2,6 +2,8 @@
 
 #pragma once
 #include <cstddef> // c standard def
+#include <condition_variable>
+#include <mutex>
 
 // RingBuffer class, where its only supported item type is an int
 class RingBuffer {
@@ -16,6 +18,11 @@ class RingBuffer {
         bool isEmpty() const;
         bool isFull() const;
         int size() const;
+
+        std::mutex mutex;
+        std::condition_variable nonfull;
+        std::condition_variable nonempty;
+
 
     private:
         int* buffer;                // pointer to my buffer

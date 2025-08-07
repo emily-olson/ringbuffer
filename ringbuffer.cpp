@@ -1,16 +1,15 @@
 #include "ringbuffer.hpp"
 #include <stdexcept>
-#include <std::mutex>
-#include <std::unique_lock>
-#include <condition_variable>
 
 // Constructor for my RingBuffer 
 // returns nothing, don't need to say void
 RingBuffer::RingBuffer(size_t cap): capacity(cap), read_head(0), write_head(0), count(0) {
     buffer = new int[capacity];                             // create an array of ints of length capacity, to serve as buffer. allocates memory on the heap.
+    /* This was wrong because these are local variables to JUST the constructor function. After the constructor finishes, these variables go out of scope!!!!
     std::mutex mutex;
     std::condition_variable nonfull;
     std::condition_variable nonempty;
+    */
 
 }
 
@@ -32,10 +31,10 @@ void RingBuffer::write(int item) {
 
     buffer[write_head] = item;
     write_head = (write_head + 1) % capacity;               // increment the write head (pointing at next available place to write)
-    if not (isEmpty()) {
+    count++;                                                // increment number of items in buffer, don't need to use modulo because we just add to count and then subtract from count when reading
+    if (!isEmpty()) {
         nonempty.notify_all();
     }
-    count++;                                                // increment number of items in buffer, don't need to use modulo because we just add to count and then subtract from count when reading
 }
 
 
@@ -52,9 +51,10 @@ int RingBuffer::read() {
     int read_item;
     read_item = buffer[read_head];
     read_head = (read_head + 1) % capacity;
-    if not (isFull()) {
-        nonfull.notify_all();
     count--;
+    if (!isFull()) {
+        nonfull.notify_all();
+    }
     return read_item;
 }
 
